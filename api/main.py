@@ -6,6 +6,7 @@ from .models import models, schemas
 from .controllers import orders
 from .dependencies.database import engine, get_db
 from api.controllers import sandwiches
+from api.controllers import resources
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -77,3 +78,27 @@ def update_sandwich(sandwich_id: int, sandwich: schemas.SandwichUpdate, db: Sess
 @app.delete("/sandwiches/{sandwich_id}")
 def delete_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
     return sandwiches.delete(db=db, sandwich_id=sandwich_id)
+
+
+@app.post("/resources/", response_model=schemas.Resource)
+def create_resource(resource: schemas.ResourceCreate, db: Session = Depends(get_db)):
+    return resources.create(db=db, resource=resource)
+
+@app.get("/resources/", response_model=list[schemas.Resource])
+def read_resources(db: Session = Depends(get_db)):
+    return resources.read_all(db)
+
+@app.get("/resources/{resource_id}", response_model=schemas.Resource)
+def read_one_resource(resource_id: int, db: Session = Depends(get_db)):
+    resource = resources.read_one(db, resource_id=resource_id)
+    if resource is None:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    return resource
+
+@app.put("/resources/{resource_id}", response_model=schemas.Resource)
+def update_resource(resource_id: int, resource: schemas.ResourceUpdate, db: Session = Depends(get_db)):
+    return resources.update(db=db, resource=resource, resource_id=resource_id)
+
+@app.delete("/resources/{resource_id}")
+def delete_resource(resource_id: int, db: Session = Depends(get_db)):
+    return resources.delete(db=db, resource_id=resource_id)
